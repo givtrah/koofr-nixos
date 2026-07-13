@@ -30,14 +30,16 @@
             copyDesktopItems
           ];
 
-          # Updated 'xorg.libX11' to the modern top-level 'libx11'
           buildInputs = with pkgs; [
             gtk3
             glib
             libx11
+            nss
+            nspr
+            libudev0-shim
+            sqlite
           ];
 
-          # Cleaned up 'categories' to strictly follow XDG standards
           desktopItems = [
             (pkgs.makeDesktopItem {
               name = "koofr";
@@ -57,11 +59,20 @@
             mkdir -p $out/bin
             mkdir -p $out/share/icons/hicolor/256x256/apps
 
+            # Copy all files so autoPatchelfHook catches all 4 binaries together
             cp -r * $out/share/koofr/
             cp icon.png $out/share/icons/hicolor/256x256/apps/koofr.png
 
-            makeWrapper $out/share/koofr/storagegui $out/bin/koofr-desktop
-            makeWrapper $out/share/koofr/storagecmd $out/bin/koofr-cmd
+            # Wrap all 4 original binaries into $out/bin under their exact native names
+            # and prefix the PATH so they can effortlessly locate each other.
+            for bin in storagegui storagecmd storagedevice storagesync; do
+              makeWrapper $out/share/koofr/$bin $out/bin/$bin \
+                --chdir $out/share/koofr \
+                --prefix PATH : $out/bin
+            done
+
+            # Provide the convenient binary alias expected by the desktop shortcut
+            ln -s $out/bin/storagegui $out/bin/koofr-desktop
 
             runHook postInstall
           '';
