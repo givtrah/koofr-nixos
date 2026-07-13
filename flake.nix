@@ -17,6 +17,7 @@
           version = "41a82e7";
 
           src = pkgs.fetchurl {
+            name = "koofr.tar.gz";
             url = "https://app.koofr.net/dl/apps/linux64";
             hash = "sha256-+jSnTjHzttFF8wDlR90Nkrxik2NOsKi18kQkQKIWuxo=";
           };
